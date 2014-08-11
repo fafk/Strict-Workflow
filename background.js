@@ -54,17 +54,17 @@ function updatePrefsFormat(prefs) {
   // say, adding boolean flags with false as the default, there's no
   // compatibility issue. However, in more complicated situations, we need
   // to modify an old PREFS module's structure for compatibility.
-  
+
   if(prefs.hasOwnProperty('domainBlacklist')) {
     // Upon adding the whitelist feature, the domainBlacklist property was
     // renamed to siteList for clarity.
-    
+
     prefs.siteList = prefs.domainBlacklist;
     delete prefs.domainBlacklist;
     savePrefs(prefs);
     console.log("Renamed PREFS.domainBlacklist to PREFS.siteList");
   }
-  
+
   if(!prefs.hasOwnProperty('showNotifications')) {
     // Upon adding the option to disable notifications, added the
     // showNotifications property, which defaults to true.
@@ -72,7 +72,7 @@ function updatePrefsFormat(prefs) {
     savePrefs(prefs);
     console.log("Added PREFS.showNotifications");
   }
-  
+
   return prefs;
 }
 
@@ -143,7 +143,7 @@ function Pomodoro(options) {
     this.currentTimer = new Pomodoro.Timer(this, timerOptions);
     this.currentTimer.start();
   }
-  
+
   this.restart = function () {
       if(this.currentTimer) {
           this.currentTimer.restart();
@@ -162,7 +162,7 @@ Pomodoro.Timer = function Timer(pomodoro, options) {
     options.onStart(timer);
     options.onTick(timer);
   }
-  
+
   this.restart = function() {
       this.timeRemaining = options.duration;
       options.onTick(timer);
@@ -185,6 +185,35 @@ Pomodoro.Timer = function Timer(pomodoro, options) {
       options.onEnd(timer);
     }
   }
+}
+
+function workLogger() {
+  this.init = function() {
+    this.hasLogger = false;
+
+    if (typeof localStorage.workLogger === 'undefined') {
+      localStorage.workLogger = [];
+      this.hasLogger = true;
+    } else {
+      this.hasLogger = true;
+    }
+    console.log('initiated');
+  }
+
+  this.log = function(message) {
+    now = new Date();
+    var objLog = {'message': message, 'date': now.toLocaleString()};
+
+    if (localStorage.workLogger === '') {
+      logArray = [];
+      logArray.push(objLog);
+    } else {
+      logArray = JSON.parse(localStorage.workLogger);
+      logArray.push(objLog);
+    }
+    localStorage.workLogger = JSON.stringify(logArray);
+  }
+
 }
 
 /*
@@ -260,7 +289,7 @@ function isLocationBlocked(location) {
       return !PREFS.whitelist;
     }
   }
-  
+
   // If we're in a whitelist, an unmatched location is blocked => true
   // If we're in a blacklist, an unmatched location is not blocked => false
   return PREFS.whitelist;
@@ -270,7 +299,7 @@ function executeInTabIfBlocked(action, tab) {
   var file = "content_scripts/" + action + ".js", location;
   location = tab.url.split('://');
   location = parseLocation(location[1]);
-  
+
   if(isLocationBlocked(location)) {
     chrome.tabs.executeScript(tab.id, {file: file});
   }
@@ -288,6 +317,9 @@ function executeInAllBlockedTabs(action) {
   });
 }
 
+logger = new workLogger();
+logger.init();
+
 var notification, mainPomodoro = new Pomodoro({
   getDurations: function () { return PREFS.durations },
   timer: {
@@ -296,7 +328,7 @@ var notification, mainPomodoro = new Pomodoro({
         path: ICONS.ACTION.PENDING[timer.pomodoro.nextMode]
       });
       chrome.browserAction.setBadgeText({text: ''});
-      
+
       if(PREFS.showNotifications) {
         var nextModeName = chrome.i18n.getMessage(timer.pomodoro.nextMode);
         chrome.notifications.create("", {
@@ -307,13 +339,16 @@ var notification, mainPomodoro = new Pomodoro({
           iconUrl: ICONS.FULL[timer.type]
         }, function() {});
       }
-      
+
+
+
       if(PREFS.shouldRing) {
         console.log("playing ring", RING);
         RING.play();
       }
     },
     onStart: function (timer) {
+
       chrome.browserAction.setIcon({
         path: ICONS.ACTION.CURRENT[timer.type]
       });
@@ -333,6 +368,14 @@ var notification, mainPomodoro = new Pomodoro({
           tab.startCallbacks[timer.type]();
         }
       }
+
+      // workLogger part
+      if (timer.type === 'break') {
+        var message = prompt("Wat heb je deze Pomodoro gedaan?");
+        if (message != null) {
+            logger.log(message)
+        }
+      }
     },
     onTick: function (timer) {
       chrome.browserAction.setBadgeText({text: timer.timeRemainingString()});
@@ -341,7 +384,7 @@ var notification, mainPomodoro = new Pomodoro({
 });
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-  if(mainPomodoro.running) { 
+  if(mainPomodoro.running) {
       if(PREFS.clickRestarts) {
           mainPomodoro.restart();
       }
