@@ -371,10 +371,9 @@ var notification, mainPomodoro = new Pomodoro({
 
       // workLogger part
       if (timer.type === 'break') {
-        var message = prompt("Wat heb je deze Pomodoro gedaan?");
-        if (message != null) {
-            logger.log(message)
-        }
+        var message = prompt("What were you doing during your Pomodoro?");
+        message = message || '(not specified)';
+        logger.log(message)
       }
     },
     onTick: function (timer) {
