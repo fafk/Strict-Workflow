@@ -25,6 +25,7 @@ var form = document.getElementById('options-form'),
   whitelistEl = document.getElementById('blacklist-or-whitelist'),
   showNotificationsEl = document.getElementById('show-notifications'),
   shouldRingEl = document.getElementById('should-ring'),
+  shouldPromptEl = document.getElementById('should-prompt'),
   clickRestartsEl = document.getElementById('click-restarts'),
   saveSuccessfulEl = document.getElementById('save-successful'),
   timeFormatErrorEl = document.getElementById('time-format-error'),
@@ -62,9 +63,10 @@ form.onsubmit = function () {
     durations:          durations,
     showNotifications:  showNotificationsEl.checked,
     shouldRing:         shouldRingEl.checked,
+    shouldPrompt:       shouldPromptEl.checked,
     clickRestarts:      clickRestartsEl.checked,
     whitelist:          whitelistEl.selectedIndex == 1
-  })
+  });
   saveSuccessfulEl.className = 'show';
   return false;
 }
@@ -72,6 +74,7 @@ form.onsubmit = function () {
 siteListEl.onfocus = formAltered;
 showNotificationsEl.onchange = formAltered;
 shouldRingEl.onchange = formAltered;
+shouldPromptEl.onchange = formAltered;
 clickRestartsEl.onchange = formAltered;
 whitelistEl.onchange = formAltered;
 
@@ -83,6 +86,7 @@ function formAltered() {
 siteListEl.value = background.PREFS.siteList.join("\n");
 showNotificationsEl.checked = background.PREFS.showNotifications;
 shouldRingEl.checked = background.PREFS.shouldRing;
+shouldPromptEl.checked = background.PREFS.shouldPrompt;
 clickRestartsEl.checked = background.PREFS.clickRestarts;
 whitelistEl.selectedIndex = background.PREFS.whitelist ? 1 : 0;
 
@@ -124,10 +128,20 @@ if(background.mainPomodoro.mostRecentMode == 'work') {
 }
 
 var worklog = JSON.parse(localStorage.workLogger);
+worklog.reverse();
+
+var today = new Date().toJSON().slice(0,10);
+var pmdrCount = 0;
 
 for (i in worklog) {
   var log = worklog[i];
   var li = document.createElement('li');
-  li.innerHTML = log.date + ': ' + log.message;
+  li.innerHTML = log.datetime + ': ' + log.message;
   document.querySelectorAll('.worklog')[0].appendChild(li);
+  if(log.date === today) {
+    pmdrCount++;
+  }
 }
+document.querySelectorAll('.pomodoro_count')[0].innerText =
+    "You have done " + pmdrCount + " pomodoro" + (pmdrCount!==1?'s':'') + " today!";
+

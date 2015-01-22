@@ -70,6 +70,10 @@
     "message": "Ring when a timer finishes (audio)",
     "description": "On the options page, label for the checkbox that enables/disables ringing sound at the end of a timer"
   },
+  "options_should_prompt": {
+    "message": "Prompt about work done during Pomodoro",
+    "description": "Ask the user about what he was doing during last Pomodoro"
+  },
   "options_click_restarts": {
     "message": "Clicking on a running timer restarts it",
     "description": "On the options page, label for the checkbox that enables/disables the feature that clicking on a running timer restarts it"

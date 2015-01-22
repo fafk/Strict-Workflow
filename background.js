@@ -36,6 +36,7 @@ function defaultPrefs() {
       break: 5 * 60
     },
     shouldRing: true,
+    shouldPrompt: true,
     clickRestarts: false,
     whitelist: false
   }
@@ -202,7 +203,11 @@ function workLogger() {
 
   this.log = function(message) {
     now = new Date();
-    var objLog = {'message': message, 'date': now.toLocaleString()};
+    var objLog = {
+      'message': message,
+      'datetime': now.toLocaleString(),
+      'date': now.toJSON().slice(0,10)
+    };
 
     if (localStorage.workLogger === '') {
       logArray = [];
@@ -371,9 +376,12 @@ var notification, mainPomodoro = new Pomodoro({
 
       // workLogger part
       if (timer.type === 'break') {
-        var message = prompt("What were you doing during your Pomodoro?");
+        if(PREFS.shouldPrompt) {
+          var message = prompt("What were you doing during your Pomodoro?");
+        }
         message = message || '(not specified)';
-        logger.log(message)
+
+        logger.log(message);
       }
     },
     onTick: function (timer) {
