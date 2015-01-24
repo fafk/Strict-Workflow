@@ -9,7 +9,7 @@ Installation
 <br>
 2) In Chrome, go to chrome://extension
 <br>
-3) Allow Developer Mode in topright corner
+3) Allow Developer Mode in top right corner
 <br>
 4) Click the "Load unpacked extensions..."
 <br>
